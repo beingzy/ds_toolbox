@@ -23,7 +23,7 @@ def classifier_evaluator( model, x, y ):
     # the number of true positive
     num_tp = sum([ 1 for pred, obs in zip(y_pred, y) if pred == obs and obs == 1 ])
     sensitivity = num_tp / sum(y_true == 1)
-    return( (roc_auc, sensitivity) )
+    return roc_auc, sensitivity
     
 def model_selection_cv( models, x, y, k=5, random_state=123, eval_func=None ):
     """ framework for model selection based on stratified 
@@ -86,7 +86,7 @@ def model_selection_cv( models, x, y, k=5, random_state=123, eval_func=None ):
                  'test_sensitivity_mean', 'test_sensitivity_std'\
                  ] 
     eval_report = pd.DataFrame( eval_report, columns = col_names )
-    return( eval_report ) 
+    return eval_report 
     
     
 def eval_barchart( df, 
@@ -146,5 +146,5 @@ def eval_barchart( df,
     autolabel( rects1 )
     autolabel( rects2 )
     
-    return( fig )
+    return fig 
     
