@@ -8,22 +8,17 @@ develop prototype models quickly and easily.
 ```{python}
 import pandas as pd
 import numpy as np
-
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import RandomForestClassifier
+import sklearn as sk
 
 from ds_toolbox.model_selection_functions import classifier_evaluator
 from ds_toolbox.model_selection_functions import model_selection_cv 
 from ds_toolbox.model_selection_functions import eval_barchart
 
 # define model objects
-LogisticModel = LogisticRegression(penalty='l1', C=0.1, max_iter=1000)
-Boosting = AdaBoostClassifier()
-RF = RandomForestClassifier()
-SVM = SVC( probability=True, random_state=_RANDOM_STATE )
+LogisticModel = sk.linear_model.LogisticRegression(penalty='l1', C=0.1, max_iter=1000)
+Boosting = sk.ensemble.AdaBoostClassifier()
+RF = sk.ensemble.RandomForestClassifier()
+SVM = sklearn.svm.SVC( probability=True )
 
 # package classification algorithms in dictionary
 classifiers = {"Logistic Regression (L1: Lasso)": LogisticModel, 
@@ -36,7 +31,6 @@ model_slc_report = model_selection_cv(classifiers, xdata, ydata, \
                                       k=10, random_state=_RANDOM_STATE, \
                                       eval_func = classifier_evaluator )
 
-## ##############################
 ## plot charts to visualize performance 
 auc_barchart = eval_barchart( model_slc_report, 
                               test_metrics_colnames = ['test_auc_mean', 'test_auc_std'], 
