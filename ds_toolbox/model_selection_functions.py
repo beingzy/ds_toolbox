@@ -6,24 +6,40 @@
 import numpy as np
 import pandas as pd
 from sklearn.cross_validation import StratifiedKFold
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, confusion_matrix
 import matplotlib.pyplot as plt 
 # from sklearn.metrics import f1_score, precision_score, recall_score
 
-def classifier_evaluator( model, x, y ):
+def classifier_evaluator(model, x, y):
     """ generate evaluation report on binary classifier
+        ROCAUC, F1-score, Accuracy, Sensitivity, Specificity,
+        Precision
+
+    Parameters:
+    ===========
+    model: fitted classification model
+    x: ndarray
+    y: ndarray
     """
     y_true = y
-    # calculate auc
-    probas_ = model.predict_proba( x )[:, 1]
-    fpr, tpr, thresholds = roc_curve( y_true, probas_ )
-    roc_auc = auc( fpr, tpr )
-    # calcualte F1-score, recall, precision
-    y_pred = model.predict( x )
-    # the number of true positive
-    num_tp = sum([ 1 for pred, obs in zip(y_pred, y) if pred == obs and obs == 1 ])
-    sensitivity = num_tp / sum(y_true == 1)
-    return roc_auc, sensitivity
+
+    y_probas_ = model.predict_proba(x)[:, 1]
+    y_pred = model.predict(x)
+
+    fpr, tpr, thresholds = roc_curve(y_true, y_probas_)
+    roc_auc = auc(fpr, tpr)
+
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    accuracy = (tp + tn) / (tn + fp + fn + tp)
+    sensitivity = tp / (tp + fn)
+    specificity = tn / (tn + fp)
+    precision = tn / (tn + fp)
+    f1_score = (2 * tp) / (2 * tp + fp + fn)
+
+    res = {"roc_auc": roc_auc, "f1_score": f1_score, "accuracy": accuracy,
+           "sensitivity": sensitivity, "specificity": specificity,
+           "precision": precision}
+    return res
     
 def model_selection_cv( models, x, y, k=5, random_state=123, eval_func=None ):
     """ framework for model selection based on stratified 
@@ -147,4 +163,3 @@ def eval_barchart( df,
     autolabel( rects2 )
     
     return fig 
-    
