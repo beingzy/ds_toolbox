@@ -5,21 +5,23 @@
 """
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import roc_curve, auc, confusion_matrix
 import matplotlib.pyplot as plt 
-# from sklearn.metrics import f1_score, precision_score, recall_score
+from tqdm import tqdm
+
 
 def classifier_evaluator(model, x, y):
     """ generate evaluation report on binary classifier
         ROCAUC, F1-score, Accuracy, Sensitivity, Specificity,
         Precision
 
-    Parameters:
-    ===========
-    model: fitted classification model
-    x: ndarray
-    y: ndarray
+        Parameters:
+        ===========
+        model: fitted classification model
+        x: ndarray
+        y: ndarray
     """
     y_true = y
 
@@ -41,7 +43,8 @@ def classifier_evaluator(model, x, y):
            "precision": precision}
     return res
     
-def model_selection_cv( models, x, y, k=5, random_state=123, eval_func=None ):
+    
+def model_selection_cv( models, x, y, k=5, random_state=None, eval_func=None ):
     """ framework for model selection based on stratified 
         cross-validation
     
@@ -57,55 +60,52 @@ def model_selection_cv( models, x, y, k=5, random_state=123, eval_func=None ):
     # stratified cross_validation
     cv = StratifiedKFold( y, n_folds=k, shuffle=False, random_state=random_state)
     tot_models = len( models.keys() )
-    tot_iterations = tot_models * k 
+    tot_iter = tot_models * k 
     
-    # results container
-    eval_report = []
+    pbar = tqdm(total=tot_iter)
+
+    train_reports, test_reports = [], []
+
     for jj, model_name in enumerate(models):
         model = models[model_name]
         # cross-validation evaluation containers
         train_scores = []
         test_scores = []
-        print( "--- model: {}'s cross-validation test ----".format( model_name ) )
+        # print( "--- model: {}'s cross-validation test ----".format( model_name ) )
         for ii, (train_idx, test_idx) in enumerate(cv):
             # retrieve data for relevant usage
             x_train, y_train = x[train_idx], y[train_idx]
             x_test, y_test = x[test_idx], y[test_idx]
             # training model 
             model.fit( x_train, y_train )
-            # evaluation model 
-            train_scores.append( eval_func( model, x_train, y_train ) )
-            test_scores.append( eval_func( model, x_test, y_test ) )
-       
-        train_scores = np.array( train_scores )
-        test_scores = np.array( test_scores )
-        # summarize performance 
-        # train scores
-        train_auc_mean, train_sensitivity_mean = train_scores.mean(axis=0)
-        train_auc_std, train_sensitivity_std = train_scores.std(axis=0)
-        # test scores
-        test_auc_mean, test_sensitivity_mean = test_scores.mean(axis=0)
-        test_auc_std, test_sensitivity_std = test_scores.std(axis=0)
-        
-        eval_info = [model_name, \
-                     train_auc_mean, train_auc_std, \
-                     train_sensitivity_mean, train_sensitivity_std, \
-                     test_auc_mean, test_auc_std, \
-                     test_sensitivity_mean, test_sensitivity_std]
-    
-        eval_report.append( eval_info )
-     
-    col_names = ['model_name', \
-                 'train_auc_mean', 'train_auc_std', \
-                 'train_sensitivity_mean', 'train_sensitivity_std', \
-                 'test_auc_mean', 'test_auc_std', \
-                 'test_sensitivity_mean', 'test_sensitivity_std'\
-                 ] 
-    eval_report = pd.DataFrame( eval_report, columns = col_names )
-    return eval_report 
+            # evaluation model
+            train_score = eval_func( model, x_train, y_train )
+            train_score["model_name"] = model_name
+            test_score = eval_func( model, x_test, y_test )
+            test_score["model_name"] = model_name
+            
+            train_reports.append( train_score )
+            test_reports.append( test_score )
+            
+            pbar.update()
+            
+    pbar.close()
+
+    # convert list of performance records into dataframe
+    train_reports = DataFrame(train_reports)
+    test_reports = DataFrame(train_reports)
+
+    metrics_names = [feat for feat in train_reports.columns.tolist() if feat != "model_name"]
+
+    train_reports.sort_values(by=["model_name"])
+    train_reports = train_reports[["model_name"] + metrics_names]
+    test_reports.sort_values(by=["model_name"])
+    test_reports = test_reports[["model_name"] + metrics_names]
+
+    return train_reports, test_reports
     
     
-def eval_barchart( df, 
+def eval_barchart(df, 
                   test_metrics_colnames, 
                   train_metrics_colnames,
                   label_colname = None, 
