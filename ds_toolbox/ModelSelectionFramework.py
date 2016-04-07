@@ -5,7 +5,6 @@ Date: 2016/04/07
 """
 
 
-
 class ModelSelectionFrameworkMixin(object):
 
     def __init__(self, name='', type=0, **kwargs):
@@ -21,7 +20,7 @@ class ModelSelectionFrameworkMixin(object):
         self._evaluation_matrices = None
 
         if "learners" in kwargs.keys():
-            self.load_learner(kwargs['learners'])
+            self.load_learners(kwargs['learners'])
         if "metrics" in kwargs.keys():
             self.load_evaluation_metrics(kwargs["metrics"])
         if "sampler" in kwargs.keys():
