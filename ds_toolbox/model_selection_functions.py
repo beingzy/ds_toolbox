@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from sklearn.cross_validation import StratifiedKFold
-from sklearn.metrics import roc_curve, auc, confusion_matrix
+from sklearn.metrics import roc_curve, auc, confusion_matrix, f1_score
 import matplotlib.pyplot as plt 
 from tqdm import tqdm
 
@@ -36,15 +36,15 @@ def classifier_evaluator(model, x, y):
     sensitivity = tp / (tp + fn)
     specificity = tn / (tn + fp)
     precision = tn / (tn + fp)
-    f1_score = (2 * tp) / (2 * tp + fp + fn)
+    f1_score = f1_score(y_true, y_pred)
 
     res = {"roc_auc": roc_auc, "f1_score": f1_score, "accuracy": accuracy,
            "sensitivity": sensitivity, "specificity": specificity,
            "precision": precision}
     return res
     
-    
-def model_selection_cv( models, x, y, k=5, random_state=None, eval_func=None ):
+
+def model_selection_cv( models, x, y, k=5, eval_func=None, random_state=None):
     """ framework for model selection based on stratified 
         cross-validation
     
