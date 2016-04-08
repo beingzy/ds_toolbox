@@ -36,9 +36,9 @@ def classifier_evaluator(model, x, y):
     sensitivity = tp / (tp + fn)
     specificity = tn / (tn + fp)
     precision = tn / (tn + fp)
-    f1_score = f1_score(y_true, y_pred)
+    f1_score_val = f1_score(y_true, y_pred)
 
-    res = {"roc_auc": roc_auc, "f1_score": f1_score, "accuracy": accuracy,
+    res = {"roc_auc": roc_auc, "f1_score": f1_score_val, "accuracy": accuracy,
            "sensitivity": sensitivity, "specificity": specificity,
            "precision": precision}
     return res
