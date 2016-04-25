@@ -46,7 +46,9 @@ eval_classier_report = classifier_evaluator(clf, xx, yy)
 3. create balanced sample data from imbalanced data
 ```{python}
 from ds_toolbox.Sampler import balanced_sample_maker
-xx, yy = balanced_sample_maker(xx, yy)
+balanced_xx, balanced_yy = balanced_sample_maker(xx, yy)
+# print("positive rate (original) {:.3f}".format( sum(yy)/len(yy) ))
+# print("positive rate (balanced) {:.3f}".format( sum(balanced_yy)/len(balanced_yy) ))
 ```
 
 4. create model ensembler
@@ -54,7 +56,7 @@ xx, yy = balanced_sample_maker(xx, yy)
 from ds_toolbox.Ensembler import WeightingAverageEnsembler
 
 ensemlber = WeightingAverageEnsembler()
-ensemlber.load_models([LR, BOOST, DT], weights=[0.3, 0.5, 0.2])
+ensemlber.load_models([clf01, clf02, clf03], weights=[0.3, 0.5, 0.2])
 pred_labels = ensembler.predict(xx)
 pred_probs = ensembler.predict_proba(xx)
 ```
